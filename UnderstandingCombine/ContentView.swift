@@ -6,11 +6,38 @@
 //
 
 import SwiftUI
+import Combine
+
+public protocol Publisher {
+    associatedtype Output
+    associatedtype Failure: Error
+    func subscribe<S>(_ subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input
+}
+
+public protocol Subscriber: CustomCombineIdentifierConvertible {
+    associatedtype Input
+    associatedtype Failure: Error
+    func receive(subscriber: Subscription)
+    func receive(_ input: Self.Input) -> Subscribers.Demand
+    func receive(completion: Subscribers.Completion<Self.Failure>)
+}
 
 struct ContentView: View {
+    let publisher = [1, 2, 3, 4].publisher
+    
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        VStack {
+            Text("Hello, world!")
+                .padding()
+        }.onAppear() {
+            run()
+        }
+    }
+    
+    private func run() {
+        _ = publisher
+            .filter {$0 % 2 == 0}
+            .sink {print($0)}
     }
 }
 
